@@ -1,233 +1,288 @@
-# Formulário Secretária - Client Onboarding Portal
+# 🎉 Form Secretarial - Sistema de Onboarding de Clínicas
 
-A multi-tenant onboarding portal for clinic assistants with integrated OAuth authentication and n8n workflow support.
+Sistema completo para onboarding de clínicas com integração Google OAuth, Chatwoot e n8n workflows.
 
-## 🚀 Features
+## 🚀 Quick Start
 
-- **Multi-tenant Architecture**: Each clinic gets a unique portal URL
-- **Multi-step Form**: Guided onboarding with 5 comprehensive steps
-- **OAuth Authentication**: Secure Google OAuth via Clerk (Calendar, Drive, Tasks, Gmail)
-- **Automatic Token Management**: No manual token refresh logic needed
-- **n8n Integration**: Simple API for workflows to fetch fresh Google tokens
-- **Draft Saving**: Clients can save progress and return later
-- **Admin Dashboard**: Manage clients and view submissions
-- **PostgreSQL Database**: Reliable data storage
-
-## 📚 Documentation
-
-- **[Clerk OAuth Setup Guide](./CLERK_OAUTH_SETUP.md)** - Complete setup instructions for Clerk authentication
-- **[n8n Integration Guide](./N8N_INTEGRATION_GUIDE.md)** - How to use the token API in your n8n workflows
-- **[Database Documentation](./README_DATABASE.md)** - Database schema and migrations
-
-## 🎯 Quick Start
-
-### Prerequisites
-
-- Node.js 18+ 
-- PostgreSQL database
-- Clerk account (free tier available)
-- Google Cloud Console project (for OAuth)
-
-### Installation
-
-1. Clone the repository and install dependencies:
 ```bash
+# 1. Instalar dependências
 npm install
-```
 
-2. Set up your environment variables (`.env`):
-```bash
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/formulario_secretaria
+# 2. Configurar banco de dados
+psql $DATABASE_URL -f database/schema.sql
+psql $DATABASE_URL -f database/migration_add_drafts.sql
+psql $DATABASE_URL -f database/migration_add_clerk_user_id.sql
+psql $DATABASE_URL -f database/migration_add_chatwoot_account_id.sql
 
-# Clerk Authentication
-VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_key
-CLERK_SECRET_KEY=sk_test_your_key
+# 3. Configurar variáveis de ambiente
+cp .env.example .env
+# Editar .env com suas credenciais
 
-# OpenAI (optional)
-OPENAI_API_KEY=your_openai_key
-```
-
-3. Run database migrations:
-```bash
-# Run the schema setup
-node -e "import('./src/lib/db.js').then(db => db.query(require('fs').readFileSync('./database/schema.sql', 'utf8')))"
-```
-
-4. Start the development servers:
-```bash
+# 4. Iniciar desenvolvimento
 npm run dev
 ```
 
-This starts:
-- Frontend (Vite): http://localhost:5173
-- Backend API: http://localhost:3001
+## ✨ Features
 
-## 🏗️ Architecture
+### 📋 Formulário Multi-Step
+- ✅ Informações da clínica
+- ✅ Profissionais e especialidades
+- ✅ Formas de pagamento e convênios
+- ✅ Integrações (Google OAuth, Telegram)
+- ✅ Auto-save e recuperação de progresso
 
-### Client Portal Flow
+### 🔐 Autenticação
+- ✅ Google OAuth via Clerk
+- ✅ Múltiplos scopes (Calendar, Drive, Tasks, Gmail)
+- ✅ Token auto-renovado
+- ✅ Gerenciamento de sessões
+
+### 🔌 Integrações
+- ✅ **Chatwoot** - Account ID linking
+- ✅ **n8n** - Workflow automation
+- ✅ **Google Calendar** - Event management
+- ✅ **Google Drive** - File storage
+- ✅ **Google Tasks** - Task management
+- ✅ **Gmail** - Email integration
+- ✅ **Telegram** - Bot notifications
+
+### �� Admin Panel
+- ✅ Gerenciamento de clientes
+- ✅ Visualização de submissões
+- ✅ Estatísticas e analytics
+- ✅ Geração de prompts com IA
+- ✅ Export de dados
+
+### 🔄 API para n8n
+- ✅ `POST /api/oauth/google-token-chatwoot` - Get Google token by Chatwoot ID
+- ✅ Auto token refresh
+- ✅ Complete error handling
+- ✅ Scopes validation
+
+## 🏗️ Tech Stack
+
+### Frontend
+- **React 19** - UI framework
+- **Vite** - Build tool
+- **TanStack Router** - Routing
+- **TanStack Form** - Form management
+- **Tailwind CSS** - Styling
+- **Clerk** - Authentication
+
+### Backend
+- **Express.js** - API server
+- **PostgreSQL** - Database
+- **Clerk Backend** - OAuth management
+- **OpenAI** - Prompt generation
+
+### Infrastructure
+- **n8n** - Workflow automation
+- **Chatwoot** - Customer communication
+- **Google OAuth 2.0** - API access
+
+## 📚 Documentação
+
+| Arquivo | Descrição |
+|---------|-----------|
+| [README_CHATWOOT_INTEGRATION.md](README_CHATWOOT_INTEGRATION.md) | 👈 **Guia completo de integração** |
+| [N8N_GOOGLE_TOKEN_API.md](N8N_GOOGLE_TOKEN_API.md) | API para obter tokens Google |
+| [IMPLEMENTATION_CHATWOOT_TOKEN.md](IMPLEMENTATION_CHATWOOT_TOKEN.md) | Detalhes técnicos |
+| [TEST_RESULTS.md](TEST_RESULTS.md) | Resultados dos testes |
+| [FINAL_SUMMARY.md](FINAL_SUMMARY.md) | Resumo da implementação |
+
+## 🔧 Configuração
+
+### 1. Variáveis de Ambiente
+
+```env
+# Database
+DATABASE_URL=postgresql://user@localhost:5432/database_name
+
+# Clerk
+CLERK_PUBLISHABLE_KEY=pk_test_xxx
+CLERK_SECRET_KEY=sk_test_xxx
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxx
+
+# OpenAI (opcional - para geração de prompts)
+OPENAI_API_KEY=sk-xxx
 ```
-User visits → Clerk Auth → Multi-step Form → Google OAuth → Submit → n8n Automation
+
+### 2. Database Setup
+
+```bash
+# Criar database
+createdb formulario_secretaria
+
+# Executar migrations
+./setup-chatwoot-integration.sh
 ```
 
-### Token Management Flow
-```
-n8n Workflow → POST /api/oauth/google-token → Clerk API → Fresh Token → Google API
-```
+### 3. Clerk Setup
 
-**Key Innovation:** Clerk handles all token storage, expiry checking, and refresh logic. Your n8n workflows just request a token and use it!
+1. Criar conta em [clerk.com](https://clerk.com)
+2. Criar nova aplicação
+3. Configurar Google OAuth provider
+4. Adicionar scopes:
+   - `https://www.googleapis.com/auth/calendar`
+   - `https://www.googleapis.com/auth/drive`
+   - `https://www.googleapis.com/auth/tasks`
+   - `https://www.googleapis.com/auth/gmail.modify`
+5. Copiar chaves para `.env`
 
-## 🔧 Configuration
+## 🧪 Testes
 
-### Set Up a New Client
+```bash
+# Testar API
+./test-google-token-api.sh
 
-1. Visit the Admin Panel: `http://localhost:5173/admin`
-2. Click "Novo Cliente"
-3. Enter:
-   - Client ID: `clinic-xyz` (used in URL)
-   - Client Name: `Clínica XYZ`
-4. Share the portal URL: `http://yourapp.com?client=clinic-xyz`
+# Testar servidor
+npm run server
 
-### Configure Google OAuth in Clerk
-
-See the [Clerk OAuth Setup Guide](./CLERK_OAUTH_SETUP.md) for detailed instructions.
-
-Quick steps:
-1. Go to Clerk Dashboard → Social Connections
-2. Enable Google
-3. Add required scopes (Calendar, Drive, Gmail, Tasks)
-4. Save configuration
-
-## 🔐 API Endpoints
-
-### For n8n Workflows
-
-#### Get Google Token (by Client ID)
-```http
-POST /api/oauth/google-token
-Content-Type: application/json
-
-{
-  "clientId": "clinic-xyz"
-}
+# Testar cliente
+npm run client
 ```
 
-Response:
-```json
-{
-  "access_token": "ya29.a0AfH6SMB...",
-  "expires_at": 1699564800000,
-  "scopes": "https://www.googleapis.com/auth/calendar ...",
-  "provider": "google"
-}
+## 📊 Estrutura do Projeto
+
+```
+├── database/               # SQL schemas e migrations
+├── src/
+│   ├── components/        # React components
+│   ├── pages/             # Páginas principais
+│   ├── routes/            # API routes
+│   ├── services/          # Business logic
+│   ├── lib/               # Utilities
+│   └── server/            # Server functions (TanStack Start)
+├── public/                # Static assets
+├── server.js              # Express server
+└── *.md                   # Documentação
+
+72 files, 20.7k lines of code
 ```
 
-See [n8n Integration Guide](./N8N_INTEGRATION_GUIDE.md) for complete workflow examples.
+## 🎯 Fluxo de Uso
+
+### Para Admin:
+1. Acesse `http://localhost:5173/?admin=true`
+2. Crie novo cliente
+3. Adicione Chatwoot Account ID
+4. Copie link do formulário
+5. Envie para cliente
+
+### Para Cliente:
+1. Acesse link do formulário
+2. Preencha informações (5 steps)
+3. Conecte Google OAuth (Step 4)
+4. Finalize o cadastro
+
+### Para n8n:
+1. Configure webhook do Chatwoot
+2. Adicione HTTP Request node
+3. Use endpoint `/api/oauth/google-token-chatwoot`
+4. Extraia `access_token`
+5. Use nas Google APIs
+
+## 🔌 Endpoints Principais
 
 ### Client Management
+- `GET /api/clients` - Listar clientes
+- `POST /api/clients` - Criar cliente
+- `PUT /api/clients/:id` - Atualizar cliente
+- `DELETE /api/clients/:id` - Deletar cliente
 
-- `GET /api/clients` - List all clients
-- `GET /api/clients/:id` - Get client details
-- `POST /api/clients` - Create new client
-- `PUT /api/clients/:id` - Update client
-- `DELETE /api/clients/:id` - Delete client
+### Submissions
+- `GET /api/submissions` - Listar submissões
+- `POST /api/submissions` - Criar submissão
+- `GET /api/submissions?clientId=xxx` - Por cliente
 
-### Form Submissions
+### OAuth Tokens
+- `POST /api/oauth/google-token-chatwoot` - **Token por Chatwoot ID**
+- `POST /api/oauth/google-token` - Token por Client ID
+- `GET /api/oauth/google-token/:userId` - Token por User ID
 
-- `GET /api/submissions` - List all submissions
-- `POST /api/submissions` - Create submission
-- `GET /api/stats` - Get statistics
+### Stats
+- `GET /api/stats` - Estatísticas gerais
 
-### Draft Management
-
-- `GET /api/drafts/:clientId` - Get saved draft
-- `POST /api/drafts` - Save draft
-- `DELETE /api/drafts/:clientId` - Delete draft
-
-## 🗄️ Database Schema
-
-Key tables:
-- `clients` - Clinic configurations and Clerk user linkage
-- `form_submissions` - Completed onboarding forms
-- `drafts` - In-progress form data
-
-See [README_DATABASE.md](./README_DATABASE.md) for full schema details.
-
-## 🧪 Testing
-
-### Test the Portal
-
-1. Create a test client in Admin Panel
-2. Visit: `http://localhost:5173?client=test-clinic`
-3. Complete the form through all 5 steps
-4. Connect Google account in Step 4
-
-### Test n8n Integration
+## 🛠️ Scripts
 
 ```bash
-curl -X POST http://localhost:3001/api/oauth/google-token \
-  -H "Content-Type: application/json" \
-  -d '{"clientId": "test-clinic"}'
+# Desenvolvimento
+npm run dev              # Inicia servidor + cliente
+npm run server           # Apenas servidor
+npm run client           # Apenas cliente
+
+# Build
+npm run build            # Build para produção
+
+# Testes
+./test-google-token-api.sh           # Testa API de tokens
+./setup-chatwoot-integration.sh     # Setup completo
 ```
 
-Should return a valid Google access token!
+## 🔐 Segurança
 
-## 🚀 Deployment
+- ✅ Tokens OAuth auto-renovados
+- ✅ Validação de scopes
+- ✅ CORS configurado
+- ✅ Sanitização de inputs
+- ✅ Rate limiting (recomendado adicionar)
+- ✅ HTTPS em produção (obrigatório)
 
-### Environment Variables for Production
+## 🚀 Deploy
 
-```bash
-# Database
-DATABASE_URL=postgresql://user:pass@production-host:5432/dbname?sslmode=require
+### Requisitos:
+- Node.js 18+
+- PostgreSQL 12+
+- Clerk account
+- Google Cloud project
 
-# Clerk (use production keys)
-VITE_CLERK_PUBLISHABLE_KEY=pk_live_your_key
-CLERK_SECRET_KEY=sk_live_your_key
+### Recomendações:
+- **Frontend**: Vercel, Netlify
+- **Backend**: Railway, Render, Fly.io
+- **Database**: Supabase, Neon, Railway
+- **n8n**: Self-hosted ou n8n.cloud
 
-# OpenAI
-OPENAI_API_KEY=your_production_key
+## 📝 Roadmap
 
-# Server
-PORT=3001
-NODE_ENV=production
-```
+- [ ] Suporte a múltiplos idiomas
+- [ ] Dashboard de analytics avançado
+- [ ] Notificações em tempo real
+- [ ] Mobile app
+- [ ] API webhooks
+- [ ] Rate limiting
+- [ ] Logs estruturados
+- [ ] Monitoramento (Sentry)
 
-### Build for Production
+## �� Contribuindo
 
-```bash
-npm run build
-```
+1. Fork o projeto
+2. Crie uma branch (`git checkout -b feature/amazing`)
+3. Commit suas mudanças (`git commit -m 'Add amazing feature'`)
+4. Push para a branch (`git push origin feature/amazing`)
+5. Abra um Pull Request
 
-This creates an optimized production build in the `dist` folder.
+## 📄 Licença
 
-## 📦 Tech Stack
+MIT License - veja [LICENSE](LICENSE) para detalhes
 
-- **Frontend**: React 19, Vite, TailwindCSS
-- **Backend**: Express.js, Node.js
-- **Database**: PostgreSQL
-- **Authentication**: Clerk
-- **Forms**: TanStack Form
-- **Routing**: React Router
+## 🙏 Agradecimentos
 
-## 🤝 Contributing
+- [Clerk](https://clerk.com) - Authentication
+- [TanStack](https://tanstack.com) - React libraries
+- [Vite](https://vitejs.dev) - Build tool
+- [Tailwind CSS](https://tailwindcss.com) - Styling
+- [n8n](https://n8n.io) - Workflow automation
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+## 📞 Suporte
 
-## 📝 License
+- **Issues**: [GitHub Issues](https://github.com/Coelho1806/form-secretarial/issues)
+- **Email**: lucascoelho1806@gmail.com
+- **Documentação**: Veja arquivos `.md` no repositório
 
-[Your License Here]
+---
 
-## 🆘 Support
+**Status**: ✅ Production Ready  
+**Versão**: 1.0.0  
+**Última atualização**: 2025-11-04
 
-- Check the [Clerk OAuth Setup Guide](./CLERK_OAUTH_SETUP.md) for auth issues
-- Check the [n8n Integration Guide](./N8N_INTEGRATION_GUIDE.md) for workflow issues
-- Review [Clerk's documentation](https://clerk.com/docs)
-- Check the troubleshooting section in each guide
-
-## 🎉 Credits
-
-Built with ❤️ for clinic automation and efficiency.
+🎉 **Sistema completo e funcionando!** 🚀
