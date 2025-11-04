@@ -1,0 +1,185 @@
+{
+  "name": "Chatwoot to Google Calendar",
+  "nodes": [
+    {
+      "name": "Webhook Chatwoot",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatwoot-webhook",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "name": "Get Google Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [450, 300],
+      "parameters": {
+        "url": "https://seu-dominio.com/api/oauth/google-token-chatwoot",
+        "method": "POST",
+        "bodyContentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chatwootAccountId",
+              "value": "={{ $json.account.id }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "name": "Check Token Success",
+      "type": "n8n-nodes-base.if",
+      "position": [650, 300],
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.success }}",
+              "value2": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Extract Token",
+      "type": "n8n-nodes-base.set",
+      "position": [850, 250],
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "googleToken",
+              "value": "={{ $json.access_token }}"
+            },
+            {
+              "name": "clientId",
+              "value": "={{ $json.clientId }}"
+            },
+            {
+              "name": "email",
+              "value": "={{ $json.email }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create Calendar Event",
+      "type": "n8n-nodes-base.googleCalendar",
+      "position": [1050, 250],
+      "parameters": {
+        "calendar": "primary",
+        "start": "={{ $json.start_time }}",
+        "end": "={{ $json.end_time }}",
+        "summary": "Consulta - {{ $json.conversation.contact_inbox.name }}",
+        "description": "Agendamento via Chatwoot"
+      },
+      "credentials": {
+        "googleCalendarOAuth2": {
+          "accessToken": "={{ $json.googleToken }}"
+        }
+      }
+    },
+    {
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.noOp",
+      "position": [850, 400],
+      "parameters": {}
+    },
+    {
+      "name": "Send Error to Chatwoot",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1050, 400],
+      "parameters": {
+        "url": "https://chatwoot.seu-dominio.com/api/v1/conversations/{{ $json.conversation_id }}/messages",
+        "method": "POST",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "api_access_token",
+              "value": "SUA_API_TOKEN_CHATWOOT"
+            }
+          ]
+        },
+        "bodyContentType": "json",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "❌ Erro ao criar evento no calendário. Por favor, conecte sua conta Google."
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Chatwoot": {
+      "main": [
+        [
+          {
+            "node": "Get Google Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Google Token": {
+      "main": [
+        [
+          {
+            "node": "Check Token Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Token Success": {
+      "main": [
+        [
+          {
+            "node": "Extract Token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Token": {
+      "main": [
+        [
+          {
+            "node": "Create Calendar Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          {
+            "node": "Send Error to Chatwoot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
