@@ -1,12 +1,8 @@
-nixpacks:
-  phases:
-    setup:
-      nixPkgs:
-        - nodejs_20
-        - postgresql
-    install:
-      cmds:
-        - npm ci
-    build:
-      cmds:
-        - npm run build
+[phases.setup]
+nixPkgs = ["nodejs_20", "postgresql"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
