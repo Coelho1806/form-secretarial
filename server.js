@@ -451,13 +451,11 @@ app.post('/api/oauth/google-token', async (req, res) => {
 app.get('/favicon.ico', (_req, res) => res.status(204).end())
 
 // Serve the SPA for all non-API routes (must be last)
-app.get('/*', (req, res) => {
-  // Don't serve index.html for API routes
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'API endpoint not found' })
-  }
-  
-  // Serve index.html for all other routes (SPA routing)
+// Wildcard SPA fallback without path-to-regexp pattern issues
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next()
+  if (req.path.startsWith('/api/')) return next()
+  // Serve index.html for client-side (TanStack Router) routing
   res.sendFile(join(__dirname, 'dist', 'index.html'))
 })
 
