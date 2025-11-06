@@ -49,6 +49,6 @@
     "vite": "npm:rolldown-vite@7.1.14"
   },
   "engines": {
-    "node": "20.19"
+    "node": ">=20.18.0"
   }
 }
