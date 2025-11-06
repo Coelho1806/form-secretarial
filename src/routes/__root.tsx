@@ -1,6 +1,9 @@
 import { createRootRoute, Outlet, ScrollRestoration } from '@tanstack/react-router'
 import { Meta, Scripts } from '@tanstack/react-start'
+import { ClerkProvider } from '@clerk/clerk-react'
 import type * as React from 'react'
+
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
 export const Route = createRootRoute({
   head: () => ({
@@ -23,7 +26,12 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <RootDocument>
-      <Outlet />
+      <ClerkProvider 
+        publishableKey={clerkPubKey}
+        navigate={(to) => window.location.href = to}
+      >
+        <Outlet />
+      </ClerkProvider>
     </RootDocument>
   )
 }
