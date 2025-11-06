@@ -1,6 +1,8 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
 import { clerkMiddleware, requireAuth, getAuth } from '@clerk/express'
 import {
   getAllClients,
@@ -20,6 +22,9 @@ import generatePromptHandler from './src/routes/api/generate-prompt.js'
 
 dotenv.config()
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
 const app = express()
 const PORT = process.env.PORT || 3001
 
@@ -38,6 +43,9 @@ if (!hasClerkKeys) {
 // Middleware
 app.use(cors())
 app.use(express.json({ limit: '10mb' }))
+
+// Serve static files from dist directory
+app.use(express.static(join(__dirname, 'dist')))
 
 // Only use Clerk middleware if BOTH keys are present
 if (hasClerkKeys) {
@@ -441,6 +449,16 @@ app.post('/api/oauth/google-token', async (req, res) => {
 
 // Dev: avoid favicon noise
 app.get('/favicon.ico', (_req, res) => res.status(204).end())
+
+// Serve the SPA for all non-API routes
+app.get('*', (req, res) => {
+  // Don't serve index.html for API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' })
+  }
+  
+  res.sendFile(join(__dirname, 'dist', 'index.html'))
+})
 
 // Start server
 const HOST = process.env.HOST || '0.0.0.0'
