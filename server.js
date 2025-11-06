@@ -450,13 +450,14 @@ app.post('/api/oauth/google-token', async (req, res) => {
 // Dev: avoid favicon noise
 app.get('/favicon.ico', (_req, res) => res.status(204).end())
 
-// Serve the SPA for all non-API routes
-app.get('*', (req, res) => {
+// Serve the SPA for all non-API routes (must be last)
+app.use((req, res, next) => {
   // Don't serve index.html for API routes
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'API endpoint not found' })
   }
   
+  // Serve index.html for all other routes (SPA routing)
   res.sendFile(join(__dirname, 'dist', 'index.html'))
 })
 
