@@ -55,7 +55,20 @@ if (hasClerkKeys) {
   console.log('⚠️  Clerk middleware disabled - running without OAuth')
 }
 
-// Health check
+// Health check endpoints
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'Formulário Secretária API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      clients: '/api/clients',
+      submissions: '/api/form-submissions'
+    }
+  })
+})
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'API is running' })
 })
