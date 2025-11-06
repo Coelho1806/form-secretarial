@@ -443,7 +443,8 @@ app.post('/api/oauth/google-token', async (req, res) => {
 app.get('/favicon.ico', (_req, res) => res.status(204).end())
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 API Server running on http://localhost:${PORT}`)
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`)
+const HOST = process.env.HOST || '0.0.0.0'
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 API Server running on http://${HOST}:${PORT}`)
+  console.log(`📊 Health check: http://${HOST}:${PORT}/api/health`)
 })

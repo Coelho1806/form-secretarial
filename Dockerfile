@@ -17,6 +17,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install wget for healthcheck
+RUN apk add --no-cache wget
+
 # Install only production dependencies
 COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
